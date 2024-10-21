@@ -16,6 +16,13 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v3
 
+      - name: Remove existing kernel directory (if it exists)
+        run: |
+          if [ -d "kernel" ]; then
+            echo "Removing existing kernel directory."
+            rm -rf kernel
+          fi
+
       - name: Building Kernel
         run: |
           git clone --depth 1 https://github.com/xiihaiqal/kernel_xiaomi_ginkgo.git -b fourteenKSU kernel
