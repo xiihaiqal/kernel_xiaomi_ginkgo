@@ -2,7 +2,6 @@ name: Compile Kernel
 
 on:
   workflow_dispatch:
-  inputs:
     upload_artifact:
       description: 'Upload artifact'
       required: true
