@@ -2,6 +2,18 @@ name: Compile Kernel
 
 on:
   workflow_dispatch:
+  inputs:
+    upload_artifact:
+      description: 'Upload artifact'
+      required: true
+      default: true
+    uyoy_version:
+      description: 'uYou version'
+      required: true
+    create_release:
+      description: 'Create release'
+      required: true
+      default: true
 
 jobs:
   build:
@@ -42,13 +54,20 @@ jobs:
             echo "zip_path=$ZIP_FILES" >> $GITHUB_ENV
           fi
 
-      - name: Upload ZIP to GitHub Release
-        id: upload-release
-        uses: ncipollo/release-action@v1
+      - name: Upload Artifact
+        if: ${{ inputs.upload_artifact }}
+        uses: actions/upload-artifact@v4.3.0
         with:
-          artifacts: ${{ env.zip_path }}  # Use the environment variable for the ZIP path
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref_name }}       # Tag to associate the release with
-          name: "Release ${{ github.ref_name }}"
-          draft: true                       # Draft release, set to false to publish
-          prerelease: false                 # Set to true if it's a pre-release
+          name: "kernel_artifact_${{ github.run_number }}"
+          path: ${{ env.zip_path }}
+          if-no-files-found: error
+
+      - name: Create Release
+        id: create_release
+        uses: xiihaiqal/action-gh-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          DRAFT: ${{ inputs.create_release }}
+        with:
+          files: ${{ env.zip_path }}
