@@ -7,9 +7,6 @@ on:
       description: 'Upload artifact'
       required: true
       default: true
-    uyoy_version:
-      description: 'uYou version'
-      required: true
     create_release:
       description: 'Create release'
       required: true
