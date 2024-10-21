@@ -8,19 +8,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-       - name: Configuring git environment.
-         run: |
-            git config --global user.name xiihaiqal
-            git config --global user.email admin@kingkongvpn.com.my
+      - name: Configuring git environment
+        run: |
+          git config --global user.name "xiihaiqal"
+          git config --global user.email "admin@kingkongvpn.com.my"
 
-       - name: Building Kernel.
-         run: |
-             git clone --depth 1 https://github.com/xiihaiqal/kernel_xiaomi_ginkgo.git -b fourteenKSU kernel
-             cd kernel
-             chmod 777 build.sh
-             ./build.sh
+      - name: Checkout the repository
+        uses: actions/checkout@v3
 
-       - name: Uploading ZIP.
-         run: |
-             cd kernel
-             curl -T *.zip https://pixeldrain.com/api/file/ && echo ""
+      - name: Building Kernel
+        run: |
+          git clone --depth 1 https://github.com/xiihaiqal/kernel_xiaomi_ginkgo.git -b fourteenKSU kernel
+          cd kernel
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Find ZIP files
+        id: find-zip
+        run: |
+          # Search for any .zip files in the kernel directory
+          ZIP_FILES=$(find kernel -name '*.zip' | head -n 1) # Get the first ZIP file found
+          if [ -z "$ZIP_FILES" ]; then
+            echo "No ZIP file found!" && exit 1
+          else
+            echo "Found ZIP file: $ZIP_FILES"
+            echo "zip_path=$ZIP_FILES" >> $GITHUB_ENV
+          fi
+
+      - name: Upload ZIP to GitHub Release
+        id: upload-release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ${{ env.zip_path }}  # Use the environment variable for the ZIP path
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}       # Tag to associate the release with
+          name: "Release ${{ github.ref_name }}"
+          draft: true                       # Draft release, set to false to publish
+          prerelease: false                 # Set to true if it's a pre-release
